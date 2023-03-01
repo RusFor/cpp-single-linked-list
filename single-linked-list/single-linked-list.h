@@ -70,7 +70,7 @@ class SingleLinkedList {
         // Оператор проверки итераторов на неравенство
         // Противоположен !=
         [[nodiscard]] bool operator!=(const BasicIterator<const Type>& rhs) const noexcept {
-            return !(this == rhs);
+            return !(*this == rhs);
         }
 
         // Оператор сравнения итераторов (в роли второго аргумента итератор)
@@ -82,13 +82,14 @@ class SingleLinkedList {
         // Оператор проверки итераторов на неравенство
         // Противоположен !=
         [[nodiscard]] bool operator!=(const BasicIterator<Type>& rhs) const noexcept {
-            return this->node_ != rhs.node_;
+            return !(*this == rhs);
         }
 
         // Оператор прединкремента. После его вызова итератор указывает на следующий элемент списка
         // Возвращает ссылку на самого себя
         // Инкремент итератора, не указывающего на существующий элемент списка, приводит к неопределённому поведению
         BasicIterator& operator++() noexcept {
+            assert(node_ != nullptr);
             this->node_ = node_->next_node;
             return *this;
         }
@@ -107,6 +108,7 @@ class SingleLinkedList {
         // Вызов этого оператора у итератора, не указывающего на существующий элемент списка,
         // приводит к неопределённому поведению
         [[nodiscard]] reference operator*() const noexcept {
+            assert(node_ != nullptr);
             return this->node_->value;
         }
 
@@ -114,6 +116,7 @@ class SingleLinkedList {
         // Вызов этого оператора у итератора, не указывающего на существующий элемент списка,
         // приводит к неопределённому поведению
         [[nodiscard]] pointer operator->() const noexcept {
+            assert(node_ != nullptr);
             return &this->node_->value;
         }
 
@@ -229,6 +232,8 @@ public:
      * Если при создании элемента будет выброшено исключение, список останется в прежнем состоянии
      */
     Iterator InsertAfter(ConstIterator pos, const Type& value) {
+        assert(pos.node_ != nullptr);
+        //assert(pos.node_->next_node != nullptr); все таки это допустимо, тогда вставка будет равна "вставке в конец"
         Node* temp_node = new Node(value, nullptr);
         temp_node->next_node = pos.node_->next_node;
         pos.node_->next_node = temp_node;
@@ -250,6 +255,9 @@ public:
      * Возвращает итератор на элемент, следующий за удалённым
      */
     Iterator EraseAfter(ConstIterator pos) noexcept {
+        assert(pos.node_ != nullptr);
+        assert(pos.node_->next_node != nullptr);
+        assert(IsEmpty() == false);
         Node* temp_node = pos.node_->next_node;
         pos.node_->next_node = pos.node_->next_node->next_node;
         delete temp_node;
@@ -271,8 +279,6 @@ public:
 
     // Очищает список за время O(N)
     void Clear() noexcept {
-        // Реализуйте метод самостоятельно
-        if (IsEmpty()) return;
         while (head_.next_node != nullptr) {
             Node* temp_node = head_.next_node;
             head_.next_node = temp_node->next_node;
@@ -305,8 +311,7 @@ void swap(SingleLinkedList<Type>& lhs, SingleLinkedList<Type>& rhs) noexcept {
 
 template <typename Type>
 bool operator==(const SingleLinkedList<Type>& lhs, const SingleLinkedList<Type>& rhs) {
-    // Заглушка. Реализуйте сравнение самостоятельно
-
+    //если поставить &lhs != &rhs то тесты падают. 
     return (lhs.GetSize() == rhs.GetSize() && std::equal(lhs.cbegin(), lhs.cend(), rhs.cbegin(), rhs.cend()));
 }
 
