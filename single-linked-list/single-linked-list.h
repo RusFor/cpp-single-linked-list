@@ -70,7 +70,7 @@ class SingleLinkedList {
         // Оператор проверки итераторов на неравенство
         // Противоположен !=
         [[nodiscard]] bool operator!=(const BasicIterator<const Type>& rhs) const noexcept {
-            return this->node_ != rhs.node_;
+            return !(this == rhs);
         }
 
         // Оператор сравнения итераторов (в роли второго аргумента итератор)
@@ -132,32 +132,23 @@ public:
     using ConstIterator = BasicIterator<const Type>;
 
     SingleLinkedList(std::initializer_list<Type> values) {
-        //assert(size_ == 0 && head_.next_node == nullptr);
-        if (values.size() != 0) {
-            SingleLinkedList temp_list;
-            Node* temp_node = new Node(*values.begin(), nullptr);
-            temp_list.head_.next_node = temp_node;
-            for (auto it = values.begin() + 1; it != values.end(); ++it) {
-                temp_node->next_node = new Node(*it, nullptr);
-                temp_node = temp_node->next_node;
-
-            }
-            temp_list.size_ = values.size();
-            swap(temp_list);
-        }
+        InitializeList(values);
     }
 
     SingleLinkedList(const SingleLinkedList& other) {
-        //assert(size_ == 0 && head_.next_node == nullptr);
-        if (!other.IsEmpty()) {
+        InitializeList(other);
+    }
+
+    template <typename Container>
+    void InitializeList(const Container& container) {
+        if (std::distance(container.begin(), container.end())) {
             SingleLinkedList temp_list;
-            Node* temp_node = new Node(*other.begin(), nullptr);
-            temp_list.head_.next_node = temp_node;
-            for (auto it = std::next(other.begin()); it != other.end(); ++it) {
+            Node* temp_node = &temp_list.head_;
+            for (auto it = container.begin(); it != container.end(); ++it) {
                 temp_node->next_node = new Node(*it, nullptr);
                 temp_node = temp_node->next_node;
             }
-            temp_list.size_ = other.size_;
+            temp_list.size_ = std::distance(container.begin(), container.end());
             swap(temp_list);
         }
     }
